@@ -1,0 +1,7 @@
+C:\Users\witwi\Desktop\MyBlazorApp\wwwroot\css\app.css
+C:\Users\witwi\Desktop\MyBlazorApp\wwwroot\css\bootstrap\bootstrap.min.css
+C:\Users\witwi\Desktop\MyBlazorApp\wwwroot\css\bootstrap\bootstrap.min.css.map
+C:\Users\witwi\Desktop\MyBlazorApp\wwwroot\favicon.png
+C:\Users\witwi\Desktop\MyBlazorApp\wwwroot\icon-192.png
+C:\Users\witwi\Desktop\MyBlazorApp\wwwroot\index.html
+C:\Users\witwi\Desktop\MyBlazorApp\wwwroot\sample-data\weather.json

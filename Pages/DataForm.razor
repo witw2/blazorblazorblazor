@@ -1,0 +1,48 @@
+﻿@page "/data-form"
+@inject HttpClient Http
+@inject ILogger<DataForm> Logger
+@using MyBlazorApp.Models
+
+<h3>Data Form</h3>
+
+<form>
+    <div>
+        <label>Name:</label>
+        <input @bind="dataItem.Name" />
+    </div>
+    <div>
+        <label>Price:</label>
+        <input @bind="dataItem.Price" type="number" />
+    </div>
+    <button type="button" @onclick="SaveData">Save</button>
+</form>
+
+@code {
+    private DataItem dataItem = new();
+
+    private async Task SaveData()
+    {
+        try
+        {
+            if (dataItem.Id == 0)
+            {
+                Logger.LogInformation("POST");
+                var response = await Http.PostAsJsonAsync("api/data", dataItem);
+                response.EnsureSuccessStatusCode();
+            }
+            else
+            {
+                Logger.LogInformation("PUT");
+                var response = await Http.PutAsJsonAsync($"api/data/{dataItem.Id}", dataItem);
+                response.EnsureSuccessStatusCode();
+            }
+            // Clear the form after successful save
+            dataItem = new DataItem();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError($"Error saving data: {ex.Message}");
+        }
+    }
+}
+

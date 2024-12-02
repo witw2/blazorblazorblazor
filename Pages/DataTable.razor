@@ -1,0 +1,123 @@
+﻿@page "/"
+@page "/data-table"
+@inject HttpClient Http
+@inject ILogger<DataTable> Logger
+@using MyBlazorApp.Models
+
+<h3>Data Table</h3>
+
+<input @bind="filter" placeholder="Filter..." />
+<button @onclick="LoadData">Load Data</button>
+
+<table>
+    <thead>
+        <tr>
+            <th @onclick="() => SortData(nameof(DataItem.Name))">Name</th>
+            <th @onclick="() => SortData(nameof(DataItem.Price))">Price</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in data)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Price</td>
+                <td>
+                    <button @onclick="() => EditItem(item)">Edit</button>
+                    <button @onclick="() => DeleteItem(item.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    <button @onclick="PreviousPage" disabled="@(!CanPreviousPage)">Previous</button>
+    <button @onclick="NextPage" disabled="@(!CanNextPage)">Next</button>
+</div>
+
+@code {
+    private List<DataItem> data = new();
+    private string filter = "";
+    private int pageNumber = 1;
+    private int pageSize = 10;
+    private string sortColumn = nameof(DataItem.Name);
+    private bool sortAscending = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            Logger.LogInformation("Loading data...");
+            var response = await Http.GetAsync($"api/data?pageNumber={pageNumber}&pageSize={pageSize}&filter={filter}&sortColumn={sortColumn}&sortAscending={sortAscending}");
+            response.EnsureSuccessStatusCode();
+            var responseData = await response.Content.ReadFromJsonAsync<List<DataItem>>();
+            data = responseData ?? new List<DataItem>();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError($"Error loading data: {ex.Message}");
+        }
+    }
+
+    private void SortData(string column)
+    {
+        if (sortColumn == column)
+        {
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            sortColumn = column;
+            sortAscending = true;
+        }
+        LoadData();
+    }
+
+    private void EditItem(DataItem item)
+    {
+        // Implement edit logic
+    }
+
+    private async Task DeleteItem(int id)
+    {
+        try
+        {
+            Logger.LogInformation($"Deleting item with ID {id}...");
+            var response = await Http.DeleteAsync($"api/data/{id}");
+            response.EnsureSuccessStatusCode();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError($"Error deleting data: {ex.Message}");
+        }
+    }
+
+    private bool CanPreviousPage => pageNumber > 1;
+    private bool CanNextPage => data.Count == pageSize;
+
+    private void PreviousPage()
+    {
+        if (CanPreviousPage)
+        {
+            pageNumber--;
+            LoadData();
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CanNextPage)
+        {
+            pageNumber++;
+            LoadData();
+        }
+    }
+}
