@@ -2,16 +2,17 @@
 @inject HttpClient Http
 @inject ILogger<DataForm> Logger
 @using MyBlazorApp.Models
+@using System.Text.Json
 
 <h3>Data Form</h3>
 
 <form>
     <div>
-        <label>Name:</label>
+        <label>Title:</label>
         <input @bind="dataItem.Name" />
     </div>
     <div>
-        <label>Price:</label>
+        <label>Description:</label>
         <input @bind="dataItem.Price" type="number" />
     </div>
     <button type="button" @onclick="SaveData">Save</button>
@@ -24,20 +25,23 @@
     {
         try
         {
-            if (dataItem.Id == 0)
-            {
-                Logger.LogInformation("POST");
-                var response = await Http.PostAsJsonAsync("api/data", dataItem);
-                response.EnsureSuccessStatusCode();
-            }
-            else
-            {
-                Logger.LogInformation("PUT");
-                var response = await Http.PutAsJsonAsync($"api/data/{dataItem.Id}", dataItem);
-                response.EnsureSuccessStatusCode();
-            }
+            Logger.LogInformation("POST");
+            var response = await Http.PostAsJsonAsync("https://localhost:5019/todo", dataItem);
+            response.EnsureSuccessStatusCode();
             // Clear the form after successful save
             dataItem = new DataItem();
+        }
+        catch (HttpRequestException httpEx)
+        {
+            Logger.LogError($"HTTP error saving data: {httpEx.Message}");
+        }
+        catch (NotSupportedException nsEx)
+        {
+            Logger.LogError($"The content type is not supported: {nsEx.Message}");
+        }
+        catch (JsonException jsonEx)
+        {
+            Logger.LogError($"Error deserializing JSON: {jsonEx.Message}");
         }
         catch (Exception ex)
         {
@@ -45,4 +49,5 @@
         }
     }
 }
+
 

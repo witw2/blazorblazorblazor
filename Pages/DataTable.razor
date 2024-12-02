@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @inject ILogger<DataTable> Logger
 @using MyBlazorApp.Models
+@using System.Text.Json
 
 <h3>Data Table</h3>
 
@@ -55,10 +56,22 @@
         try
         {
             Logger.LogInformation("Loading data...");
-            var response = await Http.GetAsync($"api/data?pageNumber={pageNumber}&pageSize={pageSize}&filter={filter}&sortColumn={sortColumn}&sortAscending={sortAscending}");
+            var response = await Http.GetAsync($"http://localhost:5019/todo?page={pageNumber}&sortAsc={sortAscending}");
             response.EnsureSuccessStatusCode();
             var responseData = await response.Content.ReadFromJsonAsync<List<DataItem>>();
             data = responseData ?? new List<DataItem>();
+        }
+        catch (HttpRequestException httpEx)
+        {
+            Logger.LogError($"HTTP error loading data: {httpEx.Message}");
+        }
+        catch (NotSupportedException nsEx)
+        {
+            Logger.LogError($"The content type is not supported: {nsEx.Message}");
+        }
+        catch (JsonException jsonEx)
+        {
+            Logger.LogError($"Error deserializing JSON: {jsonEx.Message}");
         }
         catch (Exception ex)
         {
@@ -90,9 +103,13 @@
         try
         {
             Logger.LogInformation($"Deleting item with ID {id}...");
-            var response = await Http.DeleteAsync($"api/data/{id}");
+            var response = await Http.DeleteAsync($"http://localhost:5019/todo/{id}");
             response.EnsureSuccessStatusCode();
             await LoadData();
+        }
+        catch (HttpRequestException httpEx)
+        {
+            Logger.LogError($"HTTP error deleting data: {httpEx.Message}");
         }
         catch (Exception ex)
         {
@@ -121,3 +138,7 @@
         }
     }
 }
+
+
+
+
