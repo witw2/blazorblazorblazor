@@ -1,26 +1,29 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿<div class="top-row navbar navbar-dark bg-gradient-dark shadow-sm py-3">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">MyBlazorApp</a>
+        <a class="navbar-brand fw-bold text-light" href="">
+            <i class="bi bi-check2-circle me-2"></i> TODOapp
+        </a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
+<div class="@NavMenuCssClass nav-scrollable bg-dark" @onclick="ToggleNavMenu">
+    <nav class="flex-column py-3">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="data-table">
-                <span class="bi bi-table" aria-hidden="true"></span> Data Table
+            <NavLink class="nav-link text-light d-flex align-items-center" href="data-table">
+                <i class="bi bi-table me-2"></i> <span>Elements</span>
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="data-form">
-                <span class="bi bi-pencil" aria-hidden="true"></span> Data Form
+            <NavLink class="nav-link text-light d-flex align-items-center" href="data-form">
+                <i class="bi bi-pencil me-2"></i> <span>Add Element</span>
             </NavLink>
         </div>
     </nav>
 </div>
+
 
 @code {
     private bool collapseNavMenu = true;

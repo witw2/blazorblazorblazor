@@ -101,3 +101,8 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+.bg-gradient-dark {
+    background: linear-gradient(135deg, #1f1f1f, #2b2b2b);
+    color: #f8f9fa;
+}

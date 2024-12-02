@@ -1,41 +1,68 @@
-﻿@page "/"
-@page "/data-table"
+﻿@page "/data-table"
 @inject HttpClient Http
 @inject ILogger<DataTable> Logger
+@inject NavigationManager Navigation
 @using MyBlazorApp.Models
 @using System.Text.Json
 
-<h3>Data Table</h3>
+<h3 class="text-center my-4">Elements</h3>
 
-<input @bind="filter" placeholder="Filter..." />
-<button @onclick="LoadData">Load Data</button>
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <input @bind="filter" class="form-control" placeholder="Filter..." />
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="LoadData">Load Data</button>
+        </div>
+        <div class="col-auto">
+            <select @bind="sortBy" @bind:event="onchange" @onclick="LoadData" class="form-select">
+                <option value="Title">Title</option>
+                <option value="Description">Description</option>
+                <option value="Created">Created</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <select @bind="sortAscending" @bind:event="onchange" @onclick="LoadData" class="form-select">
+                <option value="true">Ascending</option>
+                <option value="false">Descending</option>
+            </select>
+        </div>
+    </div>
 
-<table>
-    <thead>
-        <tr>
-            <th @onclick="() => SortData(nameof(DataItem.Name))">Name</th>
-            <th @onclick="() => SortData(nameof(DataItem.Price))">Price</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in data)
-        {
+    <div class="d-flex justify-content-between mb-3">
+        <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@(!CanPreviousPage)">Previous</button>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNextPage)">Next</button>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td>@item.Name</td>
-                <td>@item.Price</td>
-                <td>
-                    <button @onclick="() => EditItem(item)">Edit</button>
-                    <button @onclick="() => DeleteItem(item.Id)">Delete</button>
-                </td>
+                <th class="sortable">Title</th>
+                <th>Description</th>
+                <th>Created</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in data)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.Description</td>
+                    <td>@item.Created</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => EditItem(item.Id)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteItem(item.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-<div>
-    <button @onclick="PreviousPage" disabled="@(!CanPreviousPage)">Previous</button>
-    <button @onclick="NextPage" disabled="@(!CanNextPage)">Next</button>
+    <div class="mb-3">
+        <p>Showing @itemCount/10 elements per page</p>
+    </div>
 </div>
 
 @code {
@@ -43,8 +70,12 @@
     private string filter = "";
     private int pageNumber = 1;
     private int pageSize = 10;
-    private string sortColumn = nameof(DataItem.Name);
-    private bool sortAscending = true;
+    private string sortColumn = nameof(DataItem.Title);
+    private string sortAscending = "true";
+    private bool hasNext = false;
+    private bool hasPrevious = false;
+    private string sortBy = "Title";
+    private int itemCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,10 +87,18 @@
         try
         {
             Logger.LogInformation("Loading data...");
-            var response = await Http.GetAsync($"http://localhost:5019/todo?page={pageNumber}&sortAsc={sortAscending}");
+            var response = await Http.GetAsync($"http://localhost:5019/todo?page={pageNumber}&filter={filter}&sortAsc={sortAscending}&sortBy={sortBy}");
             response.EnsureSuccessStatusCode();
-            var responseData = await response.Content.ReadFromJsonAsync<List<DataItem>>();
-            data = responseData ?? new List<DataItem>();
+            var responseData = await response.Content.ReadFromJsonAsync<TodoResponse>();
+            if (responseData != null)
+            {
+                data = responseData.TodoTitles;
+                pageNumber = responseData.Page;
+                pageSize = responseData.PageSize;
+                hasNext = responseData.HasNext;
+                hasPrevious = responseData.HasPrevious;
+                itemCount = data.Count; // Aktualizacja licznika elementów
+            }
         }
         catch (HttpRequestException httpEx)
         {
@@ -79,23 +118,9 @@
         }
     }
 
-    private void SortData(string column)
+    private void EditItem(int id)
     {
-        if (sortColumn == column)
-        {
-            sortAscending = !sortAscending;
-        }
-        else
-        {
-            sortColumn = column;
-            sortAscending = true;
-        }
-        LoadData();
-    }
-
-    private void EditItem(DataItem item)
-    {
-        // Implement edit logic
+        Navigation.NavigateTo($"/edit-data-item/{id}");
     }
 
     private async Task DeleteItem(int id)
@@ -103,7 +128,7 @@
         try
         {
             Logger.LogInformation($"Deleting item with ID {id}...");
-            var response = await Http.DeleteAsync($"http://localhost:5019/todo/{id}");
+            var response = await Http.DeleteAsync($"http://localhost:5019/todo?id={id}");
             response.EnsureSuccessStatusCode();
             await LoadData();
         }
@@ -117,28 +142,36 @@
         }
     }
 
-    private bool CanPreviousPage => pageNumber > 1;
-    private bool CanNextPage => data.Count == pageSize;
+    private bool CanPreviousPage => hasPrevious;
+    private bool CanNextPage => hasNext;
 
-    private void PreviousPage()
+    private async Task PreviousPage()
     {
         if (CanPreviousPage)
         {
             pageNumber--;
-            LoadData();
+            await LoadData();
         }
     }
 
-    private void NextPage()
+    private async Task NextPage()
     {
         if (CanNextPage)
         {
             pageNumber++;
-            LoadData();
+            await LoadData();
         }
     }
+
+    private async Task SortByChanged(ChangeEventArgs e)
+    {
+        sortBy = e.Value.ToString();
+        await LoadData();
+    }
+
+    private async Task SortOrderChanged(ChangeEventArgs e)
+    {
+        sortAscending = e.Value.ToString();
+        await LoadData();
+    }
 }
-
-
-
-

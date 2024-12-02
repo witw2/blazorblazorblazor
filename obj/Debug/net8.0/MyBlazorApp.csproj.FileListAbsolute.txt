@@ -1040,6 +1040,6 @@ C:\Users\witwi\Desktop\MyBlazorApp\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\webcil\Newtonsoft.Json.wasm
 C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\compressed\e026kl7aaf-ryat7hvx56.gz
 C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\MyBlazorApp.sourcelink.json
-C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\compressed\5wza6cmq7d-qn820s6uei.gz
-C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\compressed\uv0m8jj0mz-jqdj1s58a5.gz
-C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\compressed\1x8j8qyv39-e18gv5jgo1.gz
+C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\compressed\5wza6cmq7d-fja2vmxo6p.gz
+C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\compressed\uv0m8jj0mz-c9l3hmmelc.gz
+C:\Users\witwi\Desktop\MyBlazorApp\obj\Debug\net8.0\compressed\1x8j8qyv39-mnmoh7aydo.gz

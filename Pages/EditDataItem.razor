@@ -1,0 +1,77 @@
+﻿@page "/edit-data-item/{id:int}"
+@inject HttpClient Http
+@inject ILogger<EditDataItem> Logger
+@using MyBlazorApp.Models
+@inject NavigationManager Navigation
+@using System.Text.Json
+
+<div class="container">
+    <form>
+        <div class="mb-3">
+            <label class="form-label">Title:</label>
+            <input @bind="dataItem.Title" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description:</label>
+            <input @bind="dataItem.Description" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Created:</label>
+            <input @bind="dataItem.Created" class="form-control" disabled />
+        </div>
+        <button type="button" class="btn btn-primary" @onclick="SaveDataItem">Save</button>
+    </form>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private DataItem dataItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataItem();
+    }
+
+    private async Task LoadDataItem()
+    {
+        try
+        {
+            Logger.LogInformation($"Loading data item with ID {Id}...");
+            var response = await Http.GetAsync($"http://localhost:5019/todo/{Id}");
+            response.EnsureSuccessStatusCode();
+            dataItem = await response.Content.ReadFromJsonAsync<DataItem>();
+        }
+        catch (HttpRequestException httpEx)
+        {
+            Logger.LogError($"HTTP error loading data item: {httpEx.Message}");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError($"Error loading data item: {ex.Message}");
+        }
+    }
+
+    private async Task SaveDataItem()
+    {
+        try
+        {
+            Logger.LogInformation($"Saving data item with ID {Id}...");
+            var response = await Http.PutAsJsonAsync($"http://localhost:5019/todo/{Id}", dataItem);
+            response.EnsureSuccessStatusCode();
+            Logger.LogInformation("Data item saved successfully.");
+			Navigation.NavigateTo("/data-table");
+        }
+        catch (HttpRequestException httpEx)
+        {
+            Logger.LogError($"HTTP error saving data item: {httpEx.Message}");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError($"Error saving data item: {ex.Message}");
+        }
+    }
+}
+
+<h3 class="text-center my-4">Edit Data Item</h3>

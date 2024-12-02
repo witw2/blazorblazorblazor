@@ -1,35 +1,56 @@
-﻿@page "/data-form"
+﻿@page "/"
+@page "/data-form"
 @inject HttpClient Http
 @inject ILogger<DataForm> Logger
 @using MyBlazorApp.Models
 @using System.Text.Json
 
-<h3>Data Form</h3>
+<h3 class="text-center my-4">Add element</h3>
 
-<form>
-    <div>
-        <label>Title:</label>
-        <input @bind="dataItem.Name" />
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="m-0">Add New Element</h3>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="titleInput" class="form-label fw-bold">Title</label>
+                            <input id="titleInput" @bind="dataItemSend.Title" class="form-control" placeholder="Enter the title" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="descriptionInput" class="form-label fw-bold">Description</label>
+                            <textarea id="descriptionInput" @bind="dataItemSend.Description" class="form-control" placeholder="Enter a brief description" rows="4"></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary btn-lg" @onclick="SaveData">
+                                <i class="bi bi-save me-2"></i> Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div>
-        <label>Description:</label>
-        <input @bind="dataItem.Price" type="number" />
-    </div>
-    <button type="button" @onclick="SaveData">Save</button>
-</form>
+</div>
+
 
 @code {
-    private DataItem dataItem = new();
+    private DataItemSend dataItemSend = new();
 
     private async Task SaveData()
     {
         try
         {
             Logger.LogInformation("POST");
-            var response = await Http.PostAsJsonAsync("https://localhost:5019/todo", dataItem);
+            var jsonData = JsonSerializer.Serialize(dataItemSend);
+            Logger.LogInformation($"Serialized data: {jsonData}");
+            var response = await Http.PostAsJsonAsync("http://localhost:5019/todo", dataItemSend);
+            Logger.LogInformation($"Response: {response.StatusCode}");
             response.EnsureSuccessStatusCode();
-            // Clear the form after successful save
-            dataItem = new DataItem();
+            dataItemSend = new DataItemSend();
         }
         catch (HttpRequestException httpEx)
         {
@@ -41,7 +62,7 @@
         }
         catch (JsonException jsonEx)
         {
-            Logger.LogError($"Error deserializing JSON: {jsonEx.Message}");
+            Logger.LogError($"Error serializing JSON: {jsonEx.Message}");
         }
         catch (Exception ex)
         {
@@ -49,5 +70,3 @@
         }
     }
 }
-
-
